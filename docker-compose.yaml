@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  devilbox-flask:
+    image: devilbox/python-flask:latest
+    container_name: devilbox-flask-app
+    ports:
+      - "5001:5000"
+    environment:
+      FLASK_ENV: development
+      DATABASE_URL: postgresql://postgres:password@postgres-db-dependency:5432/postgres_db_for_devilbox_flask
+    depends_on:
+      postgres-db-dependency:
+        condition: service_healthy
+    networks:
+      - network-one
+    restart: unless-stopped
+  
+  postgres-db-dependency:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres_db_for_devilbox_flask
+    volumes:
+      - devilbox-flask-data-volume:/var/lib/postgresql/data
+    networks:
+      - network-one
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  wordpress-cms:
+    image: wordpress:latest
+    container_name: wordpress-cms-app
+    ports:
+      - "8090:80"
+    environment:
+      WORDPRESS_DB_HOST: mysql-db-dependency:3306
+      WORDPRESS_DB_USER: wp_user
+      WORDPRESS_DB_PASSWORD: wp_password
+      WORDPRESS_DB_NAME: mysql_db_for_wordpress_cms
+    depends_on:
+      mysql-db-dependency:
+        condition: service_healthy
+    networks:
+      - network-two
+    restart: unless-stopped
+
+  mysql-db-dependency:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: mysql_db_for_wordpress_cms
+      MYSQL_USER: wp_user
+      MYSQL_PASSWORD: wp_password
+    volumes:
+      - wordpress-cms-data-volume:/var/lib/mysql
+    networks:
+      - network-two
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -proot_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  network-one:
+    driver: bridge
+  network-two:
+    driver: bridge
+
+volumes:
+  devilbox-flask-data-volume:
+    driver: local
+  wordpress-cms-data-volume:
+    driver: local
