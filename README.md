@@ -13,3 +13,7 @@ Network-Two:
 
 ## Approach
 docker-compose (i.e. container running infrastructure-as-code: YAML configuration)
+
+## Acknowledgement of network isolation
+docker network inspect container-isolation-through-dedication-of-networks_network-one
+docker network inspect container-isolation-through-dedication-of-networks_network-two
