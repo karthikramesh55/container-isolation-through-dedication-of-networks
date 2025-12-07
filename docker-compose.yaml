@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   devilbox-flask:
-    image: devilbox/python-flask:latest
+    image: python:3.11-slim
     container_name: devilbox-flask-app
     ports:
       - "5001:5000"
@@ -23,15 +21,16 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: postgres_db_for_devilbox_flask
     volumes:
-      - devilbox-flask-data-volume:/var/lib/postgresql/data
+      - devilbox-flask-data-volume:/var/lib/postgresql
     networks:
       - network-one
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres_db_for_devilbox_flask"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   wordpress-cms:
     image: wordpress:latest
@@ -67,6 +66,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
 networks:
   network-one:
