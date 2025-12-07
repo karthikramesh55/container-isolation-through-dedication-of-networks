@@ -4,6 +4,15 @@ services:
     container_name: devilbox-flask-app
     ports:
       - "5001:5000"
+    working_dir: /app
+    command: >
+      bash -c "pip install flask psycopg2-binary && 
+      python -c 'from flask import Flask; 
+      app = Flask(__name__); 
+      @app.route(\"/\") 
+      def devilflask_responds_successfully(): 
+        return \"The devilbox flask app is running successfully!\"; 
+      app.run(host=\"0.0.0.0\")'"
     environment:
       FLASK_ENV: development
       DATABASE_URL: postgresql://postgres:password@postgres-db-dependency:5432/postgres_db_for_devilbox_flask
